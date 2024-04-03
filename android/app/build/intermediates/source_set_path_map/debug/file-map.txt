@@ -39,3 +39,4 @@ com.everbeen.app-debug-37 /home/ekoehler/Documents/everBeen/android/app/src/debu
 com.everbeen.app-main-38 /home/ekoehler/Documents/everBeen/android/app/src/main/res
 com.everbeen.app-packaged_res-39 /home/ekoehler/Documents/everBeen/node_modules/react-native-safe-area-context/android/build/intermediates/packaged_res/debug
 com.everbeen.app-packaged_res-40 /home/ekoehler/Documents/everBeen/node_modules/react-native-screens/android/build/intermediates/packaged_res/debug
+com.everbeen.app-packaged_res-41 /home/ekoehler/Documents/everBeen/node_modules/react-native-webview/android/build/intermediates/packaged_res/debug
