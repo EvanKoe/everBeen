@@ -1,4 +1,7 @@
 const BASE_URL: string = "https://restcountries.com/v3.1";
+const CONTINENTS: string[] = [
+  'Africa', 'Europe', 'North America', 'Oceania', 'South America', 'Asia'
+];
 
 
 type ContinentType = {
@@ -49,10 +52,22 @@ const getContinents = (countryList: [] | never[]) => {
 }
 
 
+const getFormatContinents = () => {
+  let new_array: ContinentType[] = CONTINENTS.map((continent: string) => ({
+    label: continent,
+    value: continent
+  }));
+
+  return new_array;
+}
+
+
 export {
   getCountryIsoFromName,
   getAllCountries,
-  getContinents
+  getContinents,
+  getFormatContinents,
+  CONTINENTS
 };
 
 export type { ContinentType };
