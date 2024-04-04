@@ -1,5 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {Animated, Dimensions, FlatList, StatusBar, StyleSheet, Text, Touchable, TouchableOpacity} from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  FlatList, Image,
+  StatusBar,
+  StyleSheet,
+  Text, TextInput,
+  ToastAndroid,
+  TouchableOpacity
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import {
   getAllCountries,
@@ -8,12 +17,14 @@ import {
 import View = Animated.View;
 import {Dropdown} from "react-native-element-dropdown";
 import {SafeAreaView} from "react-native-safe-area-context";
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 
 const BASE_URL = "https://evankoe.github.io/everBeen-next/";
 const HEIGHT: number = Dimensions.get('window').height;
 const WIDTH: number = Dimensions.get('window').width;
 const BG_COLOR: string = "#222436";
+const FG_COLOR: string = "#78a2d3";
 
 
 const MainView = () => {
@@ -21,6 +32,8 @@ const MainView = () => {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [mapUrl, setMapUrl] = useState<string>(BASE_URL);
   const [countryList, setCountryList] = useState([]);
+  const [isSearchDisplayed, setIsSearchDisplayed] = useState<boolean>(false);
+  const [search, setSearch] = useState<string | undefined>(undefined);
   const [selectedContinent, setSelectedContinent] = useState<string | undefined>(undefined);
 
 
@@ -30,8 +43,7 @@ const MainView = () => {
     }
 
     let newUrl: string = BASE_URL + "?codes=";
-    selectedCountries.forEach((code: string) => newUrl + code + ',');
-    console.log(selectedCountries);
+    selectedCountries.forEach((code: string) => newUrl += code + ',');
     return newUrl.slice(0, -1);
   }
 
@@ -44,12 +56,7 @@ const MainView = () => {
   }
 
 
-  useEffect(() => {
-    setMapUrl(getUrl());
-  }, [selectedCountries]);
-
-
-  useEffect(() => {
+  const filterByContinent = () => {
     if (!selectedContinent) {
       return
     }
@@ -62,8 +69,31 @@ const MainView = () => {
       }
       return continents.some((continent: string) => selectedContinent === continent);
     });
-    setDisplayedCountries([ ...new_countries ]);
-  }, [selectedContinent]);
+    return setDisplayedCountries([ ...new_countries ]);
+  }
+
+
+  useEffect(() => {
+    filterByContinent();
+
+    if (!search) {
+      return;
+    }
+    let new_countries = displayedCountries.filter((country) => {
+      let name: string = country['name']['common'] ?? 'undefined';
+      return name.toLowerCase().includes(search.toLowerCase());
+    });
+    setDisplayedCountries(new_countries);
+  }, [search]);
+
+
+  useEffect(() => {
+    setMapUrl(getUrl());
+    console.log(mapUrl);
+  }, [selectedCountries]);
+
+
+  useEffect(filterByContinent, [selectedContinent]);
 
 
   useEffect(() => {
@@ -77,39 +107,82 @@ const MainView = () => {
   }, []);
 
 
+  useEffect(() => {
+    console.log("pute");
+  }, [mapUrl]);
+
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor={BG_COLOR} barStyle='light-content' />
 
       <WebView
         source={{ uri: mapUrl }}
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: BG_COLOR }}
+        onError={() => ToastAndroid.show("Could not connect to the internet. Try again later", ToastAndroid.SHORT)}
       />
 
       <View
         style={styles.subcontainer}
       >
-        <Dropdown
-          data={getFormatContinents()}
-          labelField="label"
-          valueField="value"
-          value={selectedContinent}
-          placeholder={selectedContinent ?? 'Select continent'}
-          placeholderStyle={{ fontWeight: 'bold', color: '#ccc' }}
-          onChange={(item) => setSelectedContinent(item.value)}
-          style={styles.dropdown}
-          mode="modal"
-        />
+        <View style={{ flexDirection: 'row' }}>
+          <Dropdown
+            data={getFormatContinents()}
+            labelField="label"
+            valueField="value"
+            value={selectedContinent}
+            placeholder={selectedContinent ?? 'Select continent'}
+            placeholderStyle={{ fontWeight: 'bold', color: '#ccc' }}
+            onChange={(item) => setSelectedContinent(item.value)}
+            style={styles.dropdown}
+            itemContainerStyle={{ backgroundColor: BG_COLOR }}
+            itemTextStyle={{ color: '#ccc' }}
+            selectedTextStyle={{ color: '#ccc', fontWeight: 'bold' }}
+            containerStyle={{ borderRadius: 12, borderWidth: 0 }}
+          />
+
+          <TouchableOpacity
+            onPress={() => setIsSearchDisplayed(e => !e)}
+            style={{ marginTop: 'auto', marginBottom: 'auto', marginHorizontal: 12 }}
+          >
+            {/* replace with an icon */}
+            <FontAwesome5
+              name="search"
+              color={"#7C7B80"}
+              size={16}
+            />
+          </TouchableOpacity>
+        </View>
+
+        { isSearchDisplayed && (
+          <View style={{ flexDirection: 'row' }}>
+            <TextInput
+              onChangeText={(e: string) => setSearch(e === "" ? undefined : e)}
+              placeholder="Search..."
+              style={styles.searchBar}
+              placeholderTextColor={FG_COLOR}
+            />
+          </View>
+        ) }
 
         <FlatList
           data={displayedCountries}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => addOrRemoveCountry(item)}
+              style={[
+                styles.countryItem,
+                { backgroundColor: selectedCountries.some((code: string) => code === item['cca2']) ? FG_COLOR : '#70719B' }
+              ]}
             >
+              <Image
+                source={{ uri: item['flags']['png'] }}
+                style={{ width: 30, height: 20, borderRadius: 2 }}
+              />
               <Text
                 style={[
-                  { color: selectedCountries.some((code: string) => code === item['cca2']) ? '#78a2d3' : '#ccc' }
+                  { marginHorizontal: 12 },
+                  { color: selectedCountries.some((code: string) => code === item['cca2']) ? '#fff' : '#ddd' }
                 ]}
               >{ item['name']['common'] }</Text>
             </TouchableOpacity>
@@ -136,12 +209,25 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20
   },
   dropdown: {
+    flex: 1,
     margin: 16,
     height: 50,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 0.5,
     fontWeight: 'bold',
     color: '#ccc'
+  },
+  searchBar: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: FG_COLOR,
+    flex: 1,
+    color: '#ccc'
+  },
+  countryItem: {
+    flexDirection: 'row',
+    marginVertical: 2,
+    backgroundColor: '#70719B',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 7
   }
 });
 

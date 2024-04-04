@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import com.th3rdwave.safeareacontext.SafeAreaContextPackage;
 // react-native-screens
 import com.swmansion.rnscreens.RNScreensPackage;
+// react-native-vector-icons
+import com.oblador.vectoricons.VectorIconsPackage;
 // react-native-webview
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 
@@ -64,6 +66,7 @@ public class PackageList {
       new MainReactPackage(mConfig),
       new SafeAreaContextPackage(),
       new RNScreensPackage(),
+      new VectorIconsPackage(),
       new RNCWebViewPackage()
     ));
   }
